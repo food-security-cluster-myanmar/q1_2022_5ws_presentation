@@ -5,6 +5,7 @@ author: "Myanmar Food Security Cluster"
 date: "2022/05/06 (updated: `r Sys.Date()`)"
 output:
   xaringan::moon_reader:
+    seal: false
     self_contained: true
     lib_dir: libs
     nature:
@@ -15,6 +16,9 @@ output:
 
 class: center, middle
 ![](Myanmar_cluster_blue.png)
+# 5W results, Q1 2022
+### 2022/05/06
+
 
 ```{r setup, include=FALSE}
 options(htmltools.dir.version = FALSE)
@@ -36,6 +40,7 @@ library(plotly)
 library(patchwork)
 library(broom)
 library(DT)
+library(widgetframe)
 theme_set(theme_light())
 
 # disabling scientific notation
@@ -741,6 +746,14 @@ class: center, middle
 ```{r out.height= "85%", out.width="85%"}
 knitr::include_graphics("ben_target.png")
 ```
+
+
+---
+class: center, middle
+![](oversubscribed_townships.png)
+
+
+
 
 
 ---
