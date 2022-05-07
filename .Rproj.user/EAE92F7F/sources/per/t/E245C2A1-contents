@@ -315,7 +315,8 @@ fsc %>%
   ungroup() %>%
   pivot_wider(names_from = humanitarian_or_development, values_from = beneficiaries, values_fill = 0) %>% 
   mutate(strat_obj = fct_relevel(strat_obj, levels = c("so_1", "so_2", "so_3")), 
-         Total = Development + Humanitarian) %>% 
+         Total = Development + Humanitarian, 
+         strat_obj = str_to_upper(strat_obj)) %>% 
   adorn_totals("row") %>% 
   kable(caption = "2022 beneficiaries by strategic objective", format.args = list(big.mark = ","), format = "html") %>% 
   kable_classic_2("striped", full_width = FALSE)
@@ -674,17 +675,19 @@ fsc %>%
 class: center, middle 
 
 ```{r}
+
 partner_scatter <- fsc %>%  
   group_by(org_code) %>% 
   summarise(states = n_distinct(state), 
             townships = n_distinct(admin3_pcode), 
             beneficiaries = sum(new_beneficiaries)) %>% 
-  ggplot(aes(x = beneficiaries, y = townships, text = org_code, 
-             text = paste0(org_code, "\n",  
-                           "beneficiaries: ", comma(beneficiaries, accuracy = 1), "\n",
-                           "townships: ", townships))) + 
+  ggplot(aes(x = beneficiaries, y = townships, 
+             text = paste0(org_code, "\n", 
+                           "states: ", states, "\n", 
+                           "townships: ", townships, "\n", 
+                           "beneficiaries: ", comma(beneficiaries, accuracy = 1)))) + 
   geom_point(aes(size = beneficiaries), alpha = .7) + 
-  scale_x_continuous(trans = "log", labels = comma, breaks = c(0, 100, 300, 1000, 3000, 10000, 100000, 300000)) +
+  scale_x_continuous(trans = "log", labels = comma, breaks = c(0, 100, 300, 1000, 3000, 10000, 30000, 100000, 300000)) +
   scale_y_continuous(breaks = seq(0, 25, 5)) +
   labs(x = "Number of beneficiaries",
        y = "Number of townships",
@@ -733,6 +736,7 @@ ben_target <- fsc %>%
        subtitle = "The red line is 100% of target")
 
 ggplotly(ben_target, tooltip = c("text"), width = 800, height = 500) %>% 
+  config(displayModeBar = FALSE) %>% 
   layout(title = list(text = paste0("Beneficiaries reached vs targeted population by township, Q1 2022",
                                     "<br>",
                                     "<sup>",
