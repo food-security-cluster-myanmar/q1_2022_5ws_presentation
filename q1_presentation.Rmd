@@ -348,23 +348,27 @@ class: center, middle
 
 ```{r fig.height = 6, dpi = 300}
 fsc %>% 
-  group_by(state, admin1_pcode) %>% 
-  summarise(beneficiaries = sum(new_beneficiaries), .groups = "drop") %>% 
-  ungroup() %>% 
-  left_join(pin %>% group_by(admin1_pcode) %>% summarise(target = sum(fs_targeted, na.rm = TRUE)),
-            by = "admin1_pcode") %>% 
-  mutate(state = fct_reorder(state, -beneficiaries),
-         pc_reached = beneficiaries / target) %>%
-  arrange(desc(pc_reached)) %>% 
+  group_by(admin3_pcode_old) %>% 
+  summarise(beneficiaries = sum(new_beneficiaries)) %>% 
+  right_join(pin, by = c("admin3_pcode_old" = "admin3_pcode")) %>% 
+  mutate(target = if_else(fs_targeted < beneficiaries, beneficiaries, fs_targeted)) %>% 
+  group_by(state) %>% 
+  summarise(beneficiaries = sum(beneficiaries, na.rm = TRUE), 
+            target = sum(target, na.rm = TRUE)) %>%
+   mutate(pc_reached = beneficiaries / target, 
+         state = fct_reorder(state, -beneficiaries)) %>%
+  filter(beneficiaries > 0) %>% 
   ggplot(aes(x = state, y = beneficiaries, fill = pc_reached)) + 
   geom_col() +
   geom_text(aes(label = comma(beneficiaries)), size = 3, vjust = -0.5) +
   scale_y_continuous(labels = comma) +
   scale_fill_viridis(labels = percent, direction = -1, option = "mako") +
-  theme(axis.text.x = element_text(angle = 30, vjust = 0.7)) +
+  theme(axis.text.x = element_text(angle = 30, vjust = 0.7),
+        plot.caption = element_text(hjust = .5)) +
   labs(x = "", y = "Beneficiaries", fill = "% of\ntarget",
        title = "Number of beneficiaries reached by state, Food Security Cluster",
-       subtitle = "and percentage of target reached") 
+       subtitle = "and percentage of target reached", 
+       caption = "If a township has achieved more than its target, its target is  adjusted to 100% of its reached")
 ```
 
 ---
@@ -753,8 +757,10 @@ knitr::include_graphics("ben_target.png")
 
 
 ---
+
 class: center, middle
-![](oversubscribed_townships.png)
+background-image: url("oversubscribed_townships.png")
+background-size: contain
 
 
 
