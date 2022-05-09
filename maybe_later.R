@@ -1,4 +1,5 @@
 
+# this is to produce the kable table at the end 
 fsc %>%  
   group_by(admin3_pcode_old) %>% 
   summarise(beneficiaries = sum(new_beneficiaries),
@@ -8,15 +9,17 @@ fsc %>%
   mutate(reached_pc = beneficiaries / fs_targeted,
          reached_pc = ifelse(is.infinite(reached_pc), 1, reached_pc),
          reached_pc = round(reached_pc * 100, digits = 2), 
-         fs_targeted = ifelse(fs_targeted == 0 & beneficiaries > 0, 1, fs_targeted),
          fs_targeted = round(fs_targeted, digits = 0), 
-         gap = fs_targeted - beneficiaries) %>% 
-  arrange(gap) %>% 
-  select(state, township, target = fs_targeted, beneficiaries, gap, `%_reached` = reached_pc, partners) %>% 
-  filter(gap < 0 & `%_reached` >= 100) %>% 
-  mutate(target = ifelse(target == 1, 0, target), 
-         gap = ifelse(target == 0, gap - 1, gap)) %>% 
+         overreach = beneficiaries - fs_targeted) %>% 
+  arrange(desc(overreach)) %>% 
+  select(state, township, target = fs_targeted, beneficiaries, overreach, `%_reached` = reached_pc, partners) %>% 
+  filter(overreach > 0 & `%_reached` >= 100 & target != 0) %>% 
   kable(caption = "Most oversubscribed townships", format.args = list(big.mark = ",")) %>% 
   kable_classic_2("striped") %>% 
+  kable_styling(font_size = 20) %>% 
   save_kable(file = "oversubscribed_townships.png", zoom = 2)
 
+
+library(xaringanBuilder)
+# building pdf version of slides
+build_pdf("q1_presentation.Rmd")
