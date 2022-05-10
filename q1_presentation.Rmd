@@ -362,10 +362,11 @@ fsc %>%
   arrange(desc(pc_reached)) %>% 
   ggplot(aes(x = state, y = beneficiaries, fill = pc_reached)) + 
   geom_col() +
-  geom_text(aes(label = comma(beneficiaries)), size = 3, vjust = -0.5) +
+  geom_text(aes(label = comma(beneficiaries)), size = 4, vjust = -0.5) +
   scale_y_continuous(labels = comma) +
   scale_fill_viridis(labels = percent, direction = -1, option = "mako") +
-  theme(axis.text.x = element_text(angle = 30, vjust = 0.7)) +
+  theme(axis.text.x = element_text(angle = 30, vjust = 0.7, size = 7), 
+        axis.text.y = element_text(size = 7)) +
   labs(x = "", y = "Beneficiaries", fill = "% of\ntarget",
        title = "Number of beneficiaries reached by state, Food Security Cluster",
        subtitle = "and percentage of target reached") 
@@ -475,9 +476,9 @@ class: center, middle
 ```{r fig.height=6, dev='svg'}
 fsc %>% 
   group_by(date, activity_red) %>% 
-  summarise(beneficiaries = sum(new_beneficiaries)) %>% 
+  summarise(beneficiaries = sum(beneficiaries)) %>% 
   rbind(fsc_2021 %>% 
-          filter(unique_beneficiaries == "Yes") %>%
+          # filter(unique_beneficiaries == "Yes") %>%
           group_by(date, activity_red) %>% 
           summarise(beneficiaries = sum(beneficiaries))) %>% 
   group_by(activity_red) %>% 
@@ -486,19 +487,21 @@ fsc %>%
   arrange(activity_red) %>% 
   mutate(activity_red = str_replace_all(activity_red, "provision of ", "")) %>%
   ggplot(aes(x = date, y = cum_ben, colour = activity_red)) +
-  geom_vline(colour = "red", lty = 2, xintercept = as.numeric(as.Date("2022-01-01")), alpha = 0.5) +
-  geom_vline(colour = "red", lty = 2, xintercept = as.numeric(as.Date("2021-06-01")), alpha = 0.5) +
-  geom_line(size = 0.7) +
+  geom_vline(colour = "black", lty = 2, xintercept = as.numeric(as.Date("2022-01-01")), alpha = 0.5) +
+  geom_vline(colour = "black", lty = 2, xintercept = as.numeric(as.Date("2021-06-01")), alpha = 0.5) +
+  geom_step(size = 0.6) +
   scale_x_date(date_breaks = "1 month", date_labels = "%b") +
   scale_y_continuous(labels = comma) +
   facet_wrap(~ activity_red, scales = "free_y") +
   theme(legend.position = "none",
-        axis.text.x = element_text(size = 5, angle = 60)) + # see if this works when you knit, then do it for the other plots 
+        axis.text.x = element_text(size = 5, angle = 60), 
+        axis.text.y = element_text(size = 5)) + # see if this works when you knit, then do it for the other plots 
   labs(x = "Month", 
-       y = "Cumulative beneficiaries", 
-       title = "Monthly progress by activity, 2021-2022",
-       subtitle = "Figures are in cumulative unique beneficiaries reached") + 
-  theme(plot.title = element_text(size = 12))
+       y = "Cumulative beneficiary frequencies", 
+       title = "Monthly progress by activity, 2021-2022(Q1)",
+       subtitle = "Figures are in cumulative beneficiary frequencies reached") + 
+  theme(plot.title = element_text(size = 12)) 
+  
 ```
 
 ---
@@ -528,6 +531,8 @@ fsc %>%
   scale_x_continuous(labels = percent, breaks = seq(0, 1, by = .2)) + 
   geom_text(aes(y = state, x = pc + 0.12, label = comma(total, accuracy = 1), fill = NULL), 
             data = state_totals, hjust = "inward", size = 3.5) +
+  theme(axis.text.x = element_text(size = 7), 
+        axis.text.y = element_text(size = 7)) + 
   labs(x = "% of total", y = "", fill = "", 
        title = "Percentage of beneficiaries reached by delivery modalities", 
        subtitle = "State beneficiary totals at the end of each bar")
@@ -548,11 +553,12 @@ fsc %>%
   mutate(`%_of_hhd` = round(households / sum(households) * 100, digits = 2)) %>% 
   ggplot(aes(x = usd_hhd_bin, y = households, fill = usd_hhd_bin)) + 
   geom_col() + 
-  geom_text(aes(label = `%_of_hhd`), vjust = -0.4, size = 3) + 
+  geom_text(aes(label = `%_of_hhd`), vjust = -0.4, size = 4) + 
   scale_fill_viridis_d(option = "mako", direction = -1) + 
   scale_y_continuous(labels = comma, breaks = seq(0, 80000, by = 10000)) + 
   theme(legend.position = "none", 
-        axis.text.x = element_text(angle = 30, hjust = 0.8, vjust = 0.9)) +
+        axis.text.x = element_text(angle = 30, hjust = 0.8, vjust = 0.9, size = 7), 
+        axis.text.y = element_text(size = 7)) +
   labs(x = "USD value of cash transfer per household per month",
        y = "Number of households",
        title = "Number of households by value of cash transfer per household (2022 1Q)",
@@ -570,7 +576,9 @@ fsc %>% filter(!is.na(total_value_usd) & activity_red != "livestock kits") %>%
   geom_boxplot(alpha = .8) + 
   scale_x_continuous(trans = "log10", breaks = c(0, 1, 3, 10, 30, 100, 300), 
                      labels = dollar_format(accuracy = 1)) +
-  theme(legend.position = "none") +
+  theme(legend.position = "none", 
+        axis.text.x = element_text(size = 7), 
+        axis.text.y = element_text(size = 6)) +
   labs(x = "USD per person", y = "", 
        title = "Boxplots of USD transfer values per person", 
        subtitle = "Thick line in each box is the mean;\n Points are individual distributions, sizes of points reflect beneficiaries")
@@ -643,7 +651,7 @@ ggplotly(food_dist_range, tooltip = c("text"), width = 800, height = 500) %>%
   layout(title = list(text = paste0("Food distribution: range of USD values per person by state",
                                     "<br>",
                                     "<sup>",
-                                    "The red line is 50% of food MEB; double-click on legend to select","</sup>")))
+                                    "The red line is 50% of 1/5 of food MEB; double-click on legend to select","</sup>")))
 ```
 
 ---
@@ -660,7 +668,8 @@ fsc %>%
   geom_text(aes(label = comma(beneficiaries)), size = 5, vjust = -0.5) +
   scale_y_continuous(labels = comma) +
   scale_fill_discrete(guide = "none") +
-  theme(axis.text.x = element_text(size = 10)) + 
+  theme(axis.text.x = element_text(size = 10), 
+        axis.text.y = element_text(size = 10)) + 
   labs(x = "Beneficiary type",
        y = "Number of beneficiaries", 
        subtitle = "Persons reached by beneficiary type")
@@ -668,7 +677,7 @@ fsc %>%
 
 ---
 class: center, middle
-### Evidence of food insecurity 
+### Breakdown of food insecurity status
 
 ```{r}
 fsc %>%  
@@ -681,6 +690,26 @@ fsc %>%
   kable(caption = "Breakdown by food insecurity status", 
         format.args = list(big.mark = ","), format = "html") %>% 
   kable_classic_2(full_width = FALSE)
+```
+
+---
+class: center, middle
+### Evidence of food insecurity 
+
+```{r}
+fsc %>% 
+  mutate(evidence = case_when(str_detect(evidence, "food consumption score") ~ "Food consumption score",
+                              evidence == "MDR" ~ "Monthly distribution report", 
+                              is.na(evidence) ~ "No evidence", 
+                              TRUE ~ evidence), 
+         evidence = ifelse(is.na(evidence), , evidence), 
+         evidence = fct_relevel(evidence, "No evidence", after = Inf)) %>% 
+  group_by(evidence) %>% 
+  summarise(beneficiaries = sum(new_beneficiaries)) %>% 
+  mutate(`%_beneficiaries` = round(beneficiaries / sum(beneficiaries) * 100, digits = 2)) %>% 
+  kable(caption = "Breakdown of evidence of food insecurity status", 
+        format.args = list(big.mark = ","), format = "html") %>% 
+  kable_classic_2("striped", full_width = FALSE)
 ```
 
 ---
